@@ -12,7 +12,7 @@ module Lita
         help: {
           "what's happening" => "Get recent activity from Samantha's Knowledge Graph"}
 
-      route %r{expert on\s(.+)}i,
+      route %r{experts? on\s(.+)}i,
         :expert_on,
         command: true,
         help: {
@@ -32,7 +32,7 @@ module Lita
         topic = response.matches[0][0]
         results = sam.expert_on(topic)
         if results.any?
-          reply_with(response, "These guys work with '#{topic} the most':", results)
+          reply_with(response, "These guys work with '#{topic}' the most:", results)
         else
           response.reply(DUNNO)
         end
