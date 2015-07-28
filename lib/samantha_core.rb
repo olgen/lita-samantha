@@ -1,5 +1,5 @@
 require 'neo4j-core'
-
+require 'pry-byebug'
 
 module PrettyDate
   def time_ago
@@ -29,22 +29,40 @@ class SamanthaCore
         @db_url = db_url
       end
 
-      WHATS_HAPPENING_QUERY = %{
+      HISTORY_QUERY = %{
         MATCH (person:Person)-[r:CREATED]->(thing)-[:HAS_TOPIC]->(topic:Topic)
         RETURN person, r, thing, topic
         ORDER BY r.created_at DESC
         LIMIT 10
       }
 
-      def whats_happening?
-        result = run_query(WHATS_HAPPENING_QUERY)
+      EXPERT_QUERY = %{
+        MATCH (person:Person)-->(thing)-[:HAS_TOPIC]->(topic:Topic)
+        WHERE topic.title = {topic_name}
+        RETURN person, count(thing) as score
+        ORDER BY score DESC
+        LIMIT 5
+      }
+
+      def whats_happening
+        result = run_query(HISTORY_QUERY)
         results = result.to_a
 
-        messages = results.map {|r| message(r) }
+        messages = results.map {|r| history_message(r) }
         return messages
       end
 
-      def message(result)
+      def expert_on(topic_name)
+        result = run_query(EXPERT_QUERY, topic_name: topic_name)
+        results = result.to_a
+
+        messages = results.map {|r| expert_message(r) }
+        return messages
+      end
+
+      protected
+
+      def history_message(result)
         name = result.person.props[:name]
         type_of_thing = result.thing.labels.first
         thing_name = result.thing.props[:title]
@@ -55,8 +73,14 @@ class SamanthaCore
         "#{name} created #{type_of_thing}:'#{thing_name}' with topic '#{topic}' #{time_ago}"
       end
 
-      def run_query(query)
-        session.query(query)
+      def expert_message(result)
+        name = result.person.props[:name]
+        "#{name}'s score is #{result.score}"
+      end
+
+      def run_query(query, args = {})
+        puts "running cypher query: #{query} with args: #{args}"
+        session.query(query, args)
       end
 
       def session
