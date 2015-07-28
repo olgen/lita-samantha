@@ -29,6 +29,13 @@ class SamanthaCore
         @db_url = db_url
       end
 
+      TOPICS_QUERY = %{
+        (thing)-[:HAS_TOPIC]->(topic:Topic)
+        RETURN  topic, count(thing) as score
+        ORDER BY score DESC
+        LIMIT 100
+      }
+
       HISTORY_QUERY = %{
         MATCH (person:Person)-[r:CREATED]->(thing)-[:HAS_TOPIC]->(topic:Topic)
         RETURN person, r, thing, topic
@@ -44,18 +51,20 @@ class SamanthaCore
         LIMIT 5
       }
 
-      def whats_happening
-        result = run_query(HISTORY_QUERY)
-        results = result.to_a
+      def topics
+        results = run_query(TOPICS_QUERY).to_a
+        messages = results.map {|r| "'#{r.topic.attrs["title"]}' has been mentioned #{r.score} times" }
+        return messages
+      end
 
+      def whats_happening
+        results = run_query(HISTORY_QUERY).to_a
         messages = results.map {|r| history_message(r) }
         return messages
       end
 
       def expert_on(topic_name)
-        result = run_query(EXPERT_QUERY, topic_name: topic_name)
-        results = result.to_a
-
+        results = run_query(EXPERT_QUERY, topic_name: topic_name).to_a
         messages = results.map {|r| expert_message(r) }
         return messages
       end

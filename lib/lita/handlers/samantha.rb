@@ -6,6 +6,12 @@ module Lita
       config :db_url
       DUNNO = "Sorry, I don't know ¯\(°_o)/¯"
 
+      route %r{topics}i,
+        :topics,
+        command: true,
+        help: {
+          "topics" => "Get all TOPICS from Samantha's Knowledge Graph"}
+
       route %r{(what's happening|what's up|wazzup)}i,
         :whats_happening,
         command: true,
@@ -18,6 +24,15 @@ module Lita
         help: {
           "expert on TOPIC" => "Get the people who know most about TOPIC from Samantha's Knowledge Graph"}
 
+
+      def topics(response)
+        results = sam.topics()
+        if results.any?
+          reply_with(response, "Here are all the topics I know:", results)
+        else
+          response.reply(DUNNO)
+        end
+      end
 
       def whats_happening(response)
         results = sam.whats_happening()
