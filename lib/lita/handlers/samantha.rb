@@ -5,11 +5,14 @@ module Lita
     class Samantha < Handler
       config :db_url
 
-      route(/what's happening|what's up|wazzup/, command: true) do |response|
-        whats_happening?(response)
-      end
+      route %r{(what's happening|what's up|wazzup)}i,
+        :whats_happening,
+        command: true,
+        help: {
+          "what's happening" => "Get recent activity from Samantha's Knowledge Graph"}
 
-      def whats_happening?(response)
+
+      def whats_happening(response)
         results = sam.whats_happening?()
         msg = "Not much...only this:\n"
         msg += results.join("\n")
