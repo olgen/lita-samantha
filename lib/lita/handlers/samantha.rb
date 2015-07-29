@@ -39,7 +39,7 @@ module Lita
           response.reply(DUNNO)
         end
       rescue Exception => e
-        response.reply(";-( ERROR: #{e.message}")
+        handle_exception(e)
       end
 
       def correlations_with(response)
@@ -51,7 +51,7 @@ module Lita
           response.reply(DUNNO)
         end
       rescue Exception => e
-        response.reply(";-( ERROR: #{e.message}")
+        handle_exception(e)
       end
 
       def whats_happening(response)
@@ -62,7 +62,7 @@ module Lita
           response.reply(DUNNO)
         end
       rescue Exception => e
-        response.reply(";-( ERROR: #{e.message}")
+        handle_exception(e)
       end
 
       def expert_on(response)
@@ -74,7 +74,13 @@ module Lita
           response.reply(DUNNO)
         end
       rescue Exception => e
-        response.reply(";-( ERROR: #{e.message}")
+        handle_exception(e)
+      end
+
+      def handle_exception(e)
+        msg = ";-( ERROR: #{e.message}"
+        puts msg
+        response.reply(msg)
       end
 
       def reply_with(response, msg, results)
