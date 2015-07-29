@@ -43,6 +43,14 @@ class SamanthaCore
         LIMIT 10
       }
 
+      CORRELATIONS_QUERY = %{
+        MATCH (topic:Topic)<-[:HAS_TOPIC]-(thing)-[:HAS_TOPIC]->(other_topic:Topic)
+        WHERE topic.title = {topic_name}
+        RETURN other_topic, count(thing) as score
+        ORDER BY score DESC
+        LIMIT 10
+      }
+
       EXPERT_QUERY = %{
         MATCH (person:Person)-->(thing)-[:HAS_TOPIC]->(topic:Topic)
         WHERE topic.title = {topic_name}
@@ -52,19 +60,23 @@ class SamanthaCore
       }
 
       def topics
-        results = run_query(TOPICS_QUERY).to_a
-        messages = results.map {|r| "'#{r.topic.attrs["title"]}' has been mentioned #{r.score} times" }
-        return messages
+        results = run_query(TOPICS_QUERY)
+        results.map {|r| "'#{r.topic.attrs["title"]}' has been mentioned #{r.score} times" }
       end
 
       def whats_happening
-        results = run_query(HISTORY_QUERY).to_a
+        results = run_query(HISTORY_QUERY)
         messages = results.map {|r| history_message(r) }
         return messages
       end
 
+      def correlations_with(topic_name)
+        results = run_query(CORRELATIONS_QUERY)
+        results.map {|r| "'#{r.topic.attrs["title"]}' has #{r.score} correlations" }
+      end
+
       def expert_on(topic_name)
-        results = run_query(EXPERT_QUERY, topic_name: topic_name).to_a
+        results = run_query(EXPERT_QUERY, topic_name: topic_name)
         messages = results.map {|r| expert_message(r) }
         return messages
       end
@@ -89,7 +101,7 @@ class SamanthaCore
 
       def run_query(query, args = {})
         puts "running cypher query: #{query} with args: #{args}"
-        session.query(query, args)
+        session.query(query, args).to_a
       end
 
       def session

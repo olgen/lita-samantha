@@ -18,6 +18,12 @@ module Lita
         help: {
           "what's happening" => "Get recent activity from Samantha's Knowledge Graph"}
 
+      route %r{correlations? with\s(.+)}i,
+        :expert_on,
+        command: true,
+        help: {
+          "correlations with TOPIC" => "Which other topics correlate with this TOPIC based on Samantha's Knowledge Graph"}
+
       route %r{experts? on\s(.+)}i,
         :expert_on,
         command: true,
@@ -29,6 +35,16 @@ module Lita
         results = sam.topics()
         if results.any?
           reply_with(response, "Here are all the topics I know:", results)
+        else
+          response.reply(DUNNO)
+        end
+      end
+
+      def correlations_with(response)
+        topic = response.matches[0][0]
+        results = sam.correlations_with(topic)
+        if results.any?
+          reply_with(response, "These people work with '#{topic}' the most:", results)
         else
           response.reply(DUNNO)
         end
