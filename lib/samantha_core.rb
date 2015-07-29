@@ -31,7 +31,7 @@ class SamanthaCore
 
       TOPICS_QUERY = %{
         (thing)-[:HAS_TOPIC]->(topic:Topic)
-        RETURN  topic, count(thing) as score
+        RETURN  topic.title as topic_title, count(thing) as score
         ORDER BY score DESC
         LIMIT 100
       }
@@ -46,7 +46,7 @@ class SamanthaCore
       CORRELATIONS_QUERY = %{
         MATCH (topic:Topic)<-[:HAS_TOPIC]-(thing)-[:HAS_TOPIC]->(other_topic:Topic)
         WHERE topic.title = {topic_name}
-        RETURN other_topic, count(thing) as score
+        RETURN other_topic.title as other_topic_title, count(thing) as score
         ORDER BY score DESC
         LIMIT 10
       }
@@ -54,14 +54,14 @@ class SamanthaCore
       EXPERT_QUERY = %{
         MATCH (person:Person)-->(thing)-[:HAS_TOPIC]->(topic:Topic)
         WHERE topic.title = {topic_name}
-        RETURN person, count(thing) as score
+        RETURN person.name as person_name, count(thing) as score
         ORDER BY score DESC
         LIMIT 5
       }
 
       def topics
         results = run_query(TOPICS_QUERY)
-        results.map {|r| "'#{r.topic.attrs["title"]}' has been mentioned #{r.score} times" }
+        results.map {|r| "'#{r.topic.props["title"]}' has been mentioned #{r.score} times" }
       end
 
       def whats_happening
@@ -72,12 +72,12 @@ class SamanthaCore
 
       def correlations_with(topic_name)
         results = run_query(CORRELATIONS_QUERY, topic_name: topic_name)
-        results.map {|r| "'#{r.other_topic.attrs["title"]}' has #{r.score} correlations" }
+        results.map {|r| "'#{r.other_topic_title}' has #{r.score} correlations" }
       end
 
       def expert_on(topic_name)
         results = run_query(EXPERT_QUERY, topic_name: topic_name)
-        messages = results.map {|r| expert_message(r) }
+        messages = results.map {|r|  "#{r.person_name}'s score is #{r.score}" }
         return messages
       end
 
@@ -92,11 +92,6 @@ class SamanthaCore
         created_at = Time.at(result.r.props[:created_at])
         time_ago = created_at.time_ago
         "#{name} created #{type_of_thing}:'#{thing_name}' with topic '#{topic}' #{time_ago}"
-      end
-
-      def expert_message(result)
-        name = result.person.props[:name]
-        "#{name}'s score is #{result.score}"
       end
 
       def run_query(query, args = {})
