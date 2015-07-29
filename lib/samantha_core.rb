@@ -30,7 +30,7 @@ class SamanthaCore
       end
 
       TOPICS_QUERY = %{
-        (thing)-[:HAS_TOPIC]->(topic:Topic)
+        MATCH (thing)-[:HAS_TOPIC]->(topic:Topic)
         RETURN  topic.title as topic_title, count(thing) as score
         ORDER BY score DESC
         LIMIT 100
