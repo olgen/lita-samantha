@@ -72,7 +72,7 @@ class SamanthaCore
 
       def correlations_with(topic_name)
         results = run_query(CORRELATIONS_QUERY, topic_name: topic_name)
-        results.map {|r| "'#{r.topic.attrs["title"]}' has #{r.score} correlations" }
+        results.map {|r| "'#{r.other_topic.attrs["title"]}' has #{r.score} correlations" }
       end
 
       def expert_on(topic_name)
