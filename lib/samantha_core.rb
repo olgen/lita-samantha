@@ -61,7 +61,7 @@ class SamanthaCore
 
       def topics
         results = run_query(TOPICS_QUERY)
-        results.map {|r| "'#{r.topic.props["title"]}' has been mentioned #{r.score} times" }
+        results.map {|r| "'#{r.topic_title}' has been mentioned #{r.score} times" }
       end
 
       def whats_happening
